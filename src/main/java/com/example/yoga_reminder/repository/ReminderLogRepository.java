@@ -6,6 +6,7 @@ import com.example.yoga_reminder.domain.enums.ReminderChannel;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 public interface ReminderLogRepository extends JpaRepository<ReminderLog, Long> {
 
@@ -18,4 +19,9 @@ public interface ReminderLogRepository extends JpaRepository<ReminderLog, Long> 
      * Fetch reminders by channel (useful if you add SMS / Email later)
      */
     List<ReminderLog> findByChannel(ReminderChannel channel);
+
+    /**
+     * Idempotency guard: check if a reminder was already sent for this invoice today.
+     */
+    boolean existsByInvoiceAndSentAtBetween(Invoice invoice, LocalDateTime start, LocalDateTime end);
 }

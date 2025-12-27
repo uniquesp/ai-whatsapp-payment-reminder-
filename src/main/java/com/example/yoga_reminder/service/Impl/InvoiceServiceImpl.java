@@ -57,6 +57,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     public InvoiceResponse getInvoice(Long invoiceId) {
         Invoice invoice = invoiceRepository.findWithSubscriptionAndUser(invoiceId)
                 .orElseThrow(() -> new IllegalArgumentException("Invoice not found"));
+        log.info("Fetched invoice {} for subscription {}", invoiceId, invoice.getSubscription().getId());
         return toResponse(invoice);
     }
 

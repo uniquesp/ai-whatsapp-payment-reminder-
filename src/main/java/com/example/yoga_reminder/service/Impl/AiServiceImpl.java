@@ -25,23 +25,26 @@ public class AiServiceImpl implements AiService {
 
     @Override
     public AiDecision detectIntent(String userReply) {
+        String safeUserReply = userReply == null ? "" : userReply;
         ChatClient client = chatClientProvider.getIfAvailable();
         if (client == null) {
-            return fallbackIntent(userReply, "AI client not configured");
+            return fallbackIntent(safeUserReply, "AI client not configured");
         }
 
         try {
+            log.info("Calling AI for intent detection with reply text: {}", safeUserReply);
             String raw = client.prompt()
                     .system(PromptTemplates.intentSystemPrompt())
-                    .user(PromptTemplates.intentUserPrompt(userReply))
+                    .user(PromptTemplates.intentUserPrompt(safeUserReply))
                     .call()
                     .content();
+            log.info("AI raw response for intent detection: {}", raw);
 
             AiDecision parsed = objectMapper.readValue(raw, AiDecision.class);
-            return normalizeDecision(parsed, userReply);
+            return normalizeDecision(parsed, safeUserReply);
         } catch (Exception ex) {
             log.warn("AI intent detection failed, falling back. reason={}", ex.getMessage());
-            return fallbackIntent(userReply, "AI inference failure");
+            return fallbackIntent(safeUserReply, "AI inference failure");
         }
     }
 
@@ -54,6 +57,7 @@ public class AiServiceImpl implements AiService {
         }
 
         try {
+            log.info("Calling AI for reminder message for user {} expiring {}", userName, expiryDate);
             return client.prompt()
                     .system(PromptTemplates.reminderSystemPrompt())
                     .user(PromptTemplates.reminderUserPrompt(userName, expiryDate))
@@ -71,24 +75,33 @@ public class AiServiceImpl implements AiService {
         }
 
         IntentType intent = decision.intent();
-        int followUpDays = decision.followUpDays() == null ? defaultFollowUp(intent) : decision.followUpDays();
-        if (intent == IntentType.PAY_NOW) {
-            followUpDays = 0;
-        }
-        followUpDays = Math.max(0, Math.min(7, followUpDays));
+        Integer followUpDays = normalizeFollowUp(intent, decision.followUpDays());
         return new AiDecision(intent, followUpDays);
     }
 
-    private int defaultFollowUp(IntentType intent) {
-        return intent == IntentType.PAY_LATER ? 3 : 0;
+    private Integer normalizeFollowUp(IntentType intent, Integer provided) {
+        if (intent == IntentType.PAY_NOW || intent == IntentType.DECLINE) {
+            return null;
+        }
+        int days = provided == null ? 3 : provided;
+        days = Math.max(1, Math.min(7, days));
+        return days;
     }
 
     private AiDecision fallbackIntent(String userReply, String reason) {
         log.info("Using rule-based intent detection: {}", reason);
-        IntentType intent = userReply != null && userReply.toLowerCase().contains("later")
-                ? IntentType.PAY_LATER
-                : IntentType.PAY_NOW;
-        return new AiDecision(intent, defaultFollowUp(intent));
+        String text = userReply == null ? "" : userReply.toLowerCase();
+        IntentType intent;
+        if (text.contains("not pay") || text.contains("cancel") || text.contains("stop") || text.contains("don't want") || text.contains("do not want") || text.equals("no")) {
+            intent = IntentType.DECLINE;
+        } else if (text.contains("later") || text.contains("tomorrow") || text.contains("next week") || text.contains("week") || text.contains("next day")) {
+            intent = IntentType.PAY_LATER;
+        } else if (text.contains("pay now") || text.contains("immediately") || text.contains("done")) {
+            intent = IntentType.PAY_NOW;
+        } else {
+            intent = IntentType.PAY_LATER; // safest default to re-engage later
+        }
+        return new AiDecision(intent, normalizeFollowUp(intent, null));
     }
 
     private String fallbackReminderMessage(String userName, LocalDate expiryDate) {

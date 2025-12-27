@@ -10,17 +10,24 @@ public final class PromptTemplates {
     public static String intentSystemPrompt() {
         return """
                 You are an assistant that classifies WhatsApp replies about yoga class payments.
-                Respond with JSON only, no markdown, no prose. Use exactly this schema:
+                Respond with JSON ONLY (no markdown, no prose). Use exactly this schema:
                 {
-                  "intent": "PAY_NOW" | "PAY_LATER",
-                  "followUpDays": <number>
+                  "intent": "PAY_NOW" | "PAY_LATER" | "DECLINE",
+                  "followUpDays": <number|null>
                 }
-                Rules:
-                - PAY_NOW means the user wants to pay immediately or already paid.
-                - PAY_LATER means the user will pay later, is busy, or schedules payment.
-                - followUpDays MUST be 0 for PAY_NOW.
-                - For PAY_LATER pick 1-7 days based on the phrase: "tomorrow"=1, "day after tomorrow"=2, "later"/"this week"=3-5, "next week"=7. If unclear, default to 3.
-                - Always return intent in upper-case and followUpDays as a number.
+                Intent meanings:
+                - PAY_NOW: user will pay immediately (e.g., "pay now", "pay immediately", "done").
+                - PAY_LATER: user will pay later (e.g., "tomorrow", "next day", "next week", "later").
+                - DECLINE: user refuses or cancels (e.g., "not pay", "cancel", "stop", "no", "don't want").
+                Examples:
+                - "I'll pay next day" -> PAY_LATER with followUpDays between 1-7
+                - "I'll pay next week" -> PAY_LATER with followUpDays 7
+                - "I'll not pay" -> DECLINE with followUpDays null
+                Output rules:
+                - followUpDays MUST be null for PAY_NOW and DECLINE.
+                - For PAY_LATER, followUpDays MUST be 1-7 (choose a sensible value based on phrasing).
+                - Do NOT guess PAY_NOW unless payment is immediate.
+                - Return only valid JSON.
                 """;
     }
 

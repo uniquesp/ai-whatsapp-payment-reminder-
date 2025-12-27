@@ -36,5 +36,14 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
             where s.id = :subscriptionId
             """)
     Optional<Invoice> findBySubscriptionWithUser(@Param("subscriptionId") Long subscriptionId);
+
+    @Query("""
+            select i from Invoice i
+            join fetch i.subscription s
+            join fetch s.user
+            join fetch s.plan
+            where i.id = :invoiceId
+            """)
+    Optional<Invoice> findWithSubscriptionUserAndPlan(@Param("invoiceId") Long invoiceId);
 }
 
