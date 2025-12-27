@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: yoga-reminder
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/yoga_payment_reminder_db
+    username: postgres
+    password: 12345
+
+  jpa:
+    hibernate:
+      ddl-auto: update   # dev only
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  ai:
+    openai:
+      # Provide your key via env SPRING_AI_OPENAI_API_KEY. Fallback keeps app booting for demos.
+      api-key: ${SPRING_AI_OPENAI_API_KEY:demo-key}
+
+  autoconfigure:
+    exclude:
+      # Disable audio/speech model to avoid startup failure when no API key is set.
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiAudioSpeechAutoConfiguration
