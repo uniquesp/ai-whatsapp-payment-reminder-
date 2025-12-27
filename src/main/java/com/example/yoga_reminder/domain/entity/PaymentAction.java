@@ -44,7 +44,6 @@ public class PaymentAction {
     @Column(name = "user_reply_text", length = 1000)
     private String userReplyText;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "detected_intent", nullable = false, length = 20)
     private PaymentIntent detectedIntent;

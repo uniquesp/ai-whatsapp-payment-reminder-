@@ -1,6 +1,6 @@
 package com.example.yoga_reminder.controller;
 
-import com.example.yoga_reminder.domain.entity.Invoice;
+import com.example.yoga_reminder.dto.response.InvoiceResponse;
 import com.example.yoga_reminder.scheduler.RenewalReminderScheduler;
 import com.example.yoga_reminder.service.InvoiceService;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +18,12 @@ public class AdminController {
     private final RenewalReminderScheduler scheduler;
 
     @PostMapping("/subscriptions/{id}/invoice")
-    public ResponseEntity<Invoice> createInvoice(@PathVariable Long id) {
+    public ResponseEntity<InvoiceResponse> createInvoice(@PathVariable Long id) {
         return ResponseEntity.ok(invoiceService.createInvoice(id));
     }
 
     @GetMapping("/invoices/{id}")
-    public ResponseEntity<Invoice> getInvoice(@PathVariable Long id) {
+    public ResponseEntity<InvoiceResponse> getInvoice(@PathVariable Long id) {
         return ResponseEntity.ok(invoiceService.getInvoice(id));
     }
 

@@ -13,6 +13,7 @@ import com.example.yoga_reminder.service.WhatsAppService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,9 +29,13 @@ public class ReminderServiceImpl implements ReminderService {
     private final AiService aiService;
 
     @Override
+    @Transactional
     public void sendRenewalReminder(Invoice invoice) {
 
-        Subscription sub = invoice.getSubscription();
+        Invoice hydrated = invoiceRepository.findWithSubscriptionAndUser(invoice.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Invoice not found"));
+
+        Subscription sub = hydrated.getSubscription();
         User user = sub.getUser();
 
         // AI crafts a short, personalized WhatsApp reminder.

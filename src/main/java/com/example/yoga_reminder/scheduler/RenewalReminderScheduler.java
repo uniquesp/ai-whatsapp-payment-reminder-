@@ -2,6 +2,7 @@ package com.example.yoga_reminder.scheduler;
 
 import com.example.yoga_reminder.domain.entity.Invoice;
 import com.example.yoga_reminder.domain.entity.Subscription;
+import com.example.yoga_reminder.domain.enums.PaymentIntent;
 import com.example.yoga_reminder.domain.enums.PaymentStatus;
 import com.example.yoga_reminder.repository.InvoiceRepository;
 import com.example.yoga_reminder.repository.SubscriptionRepository;
@@ -61,6 +62,8 @@ public class RenewalReminderScheduler {
         Invoice invoice = new Invoice();
         invoice.setSubscription(subscription);
         invoice.setPaymentStatus(PaymentStatus.PENDING);
+        // Default intent so validation passes; AI will update after user reply.
+        invoice.setPaymentIntent(PaymentIntent.PAY_NOW);
         invoice.setNextReminderDate(LocalDate.now());
         invoice.setReminderCount(0);
 
