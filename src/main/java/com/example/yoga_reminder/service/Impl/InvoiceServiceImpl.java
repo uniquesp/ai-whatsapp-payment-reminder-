@@ -3,7 +3,6 @@ package com.example.yoga_reminder.service.Impl;
 import com.example.yoga_reminder.domain.entity.Invoice;
 import com.example.yoga_reminder.domain.entity.Subscription;
 import com.example.yoga_reminder.domain.entity.User;
-import com.example.yoga_reminder.domain.enums.PaymentIntent;
 import com.example.yoga_reminder.domain.enums.PaymentStatus;
 import com.example.yoga_reminder.dto.response.InvoiceResponse;
 import com.example.yoga_reminder.repository.InvoiceRepository;
@@ -38,8 +37,6 @@ public class InvoiceServiceImpl implements InvoiceService {
                     Invoice newInvoice = new Invoice();
                     newInvoice.setSubscription(subscription);
                     newInvoice.setPaymentStatus(PaymentStatus.PENDING);
-                    // Default to PAY_NOW so the NotNull constraint is satisfied before user replies.
-                    newInvoice.setPaymentIntent(PaymentIntent.PAY_NOW);
                     newInvoice.setNextReminderDate(LocalDate.now());
                     newInvoice.setReminderCount(0);
 
@@ -57,6 +54,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     public InvoiceResponse getInvoice(Long invoiceId) {
         Invoice invoice = invoiceRepository.findWithSubscriptionAndUser(invoiceId)
                 .orElseThrow(() -> new IllegalArgumentException("Invoice not found"));
+        log.info("Fetched invoice {} for subscription {}", invoiceId, invoice.getSubscription().getId());
         return toResponse(invoice);
     }
 
