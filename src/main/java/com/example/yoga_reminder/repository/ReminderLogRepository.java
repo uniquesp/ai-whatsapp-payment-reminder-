@@ -24,4 +24,10 @@ public interface ReminderLogRepository extends JpaRepository<ReminderLog, Long> 
      * Idempotency guard: check if a reminder was already sent for this invoice today.
      */
     boolean existsByInvoiceAndSentAtBetween(Invoice invoice, LocalDateTime start, LocalDateTime end);
+
+    /**
+     * Lightweight existence check to confirm at least one reminder was sent for this invoice.
+     * Used to ensure replies are only processed after a reminder was delivered.
+     */
+    boolean existsByInvoice(Invoice invoice);
 }

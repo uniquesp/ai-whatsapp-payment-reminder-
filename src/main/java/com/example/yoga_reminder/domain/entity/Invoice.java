@@ -55,9 +55,8 @@ public class Invoice {
     @Column(name = "payment_status", nullable = false, length = 20)
     private PaymentStatus paymentStatus;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_intent", nullable = false, length = 20)
+    @Column(name = "payment_intent", length = 20)
     private PaymentIntent paymentIntent;
 
     @Column(name = "next_reminder_date")
